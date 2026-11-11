@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-latest
 
     permissions:
-      contents: write  # 릴리즈 생성을 위한 명시적 권한 부여
+      contents: write
 
     steps:
     - name: Checkout repository
@@ -34,15 +34,16 @@ jobs:
 
     - name: Get current date
       id: date
-      run: echo "date=$(date +'%Y%m%d-%H%M%S')" >> $env:GITHUB_OUTPUT
+      run: echo "date=$(date +'%Y%m%d%H%M%S')" >> $env:GITHUB_OUTPUT
       shell: bash
 
     - name: Create Release and Upload EXE
-      uses: softprops/action-gh-release@v2  # v1에서 최신 v2로 업그레이드하여 경고 해결
+      uses: softprops/action-gh-release@v2
       with:
         files: dist/ebookAutoCapture.exe
-        tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('v1.0.sch-{0}', steps.date.outputs.date) }}
-        name: ${{ github.ref_type == 'tag' && github.ref_name || format('eBook Auto Capture v1.0.sch-{0}', steps.date.outputs.date) }}
+        # 태그 이름에 특수문자나 하이픈 중첩을 줄여 규격에 맞게 수정
+        tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('v1.0.{0}', steps.date.outputs.date) }}
+        name: ${{ github.ref_type == 'tag' && github.ref_name || format('eBook Auto Capture v1.0.{0}', steps.date.outputs.date) }}
         draft: false
         prerelease: false
       env:
