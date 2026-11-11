@@ -3,8 +3,8 @@ name: Build Exe
 on:
   push:
     tags:
-      - 'v*' # v1.0, v1.0.0 같은 태그를 푸시하면 실행됩니다.
-  workflow_dispatch: # Actions 탭에서 수동으로 'Run workflow' 버튼을 눌러도 실행됩니다.
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -29,9 +29,20 @@ jobs:
       run: |
         pyinstaller --noconsole --onefile ebookAutoCapture.py
 
+    # 수동 실행 시 태그가 없을 때를 대비해 날짜 기반 태그/릴리즈 이름 생성
+    - name: Get current date
+      id: date
+      run: echo "date=$(date +'%Y%m%d-%H%M%S')" >> $env:GITHUB_OUTPUT
+      shell: bash
+
     - name: Create Release and Upload EXE
       uses: softprops/action-gh-release@v1
       with:
         files: dist/ebookAutoCapture.exe
+        # 태그가 없을 경우 임의의 태그와 이름 생성 (자동 생성됨)
+        tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v1.0.sch-${{ steps.date.outputs.date }}' }}
+        name: "eBook Auto Capture ${{ github.ref_type == 'tag' && github.ref_name || 'v1.0.sch-' + steps.date.outputs.date }}"
+        draft: false
+        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
